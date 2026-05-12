@@ -60,7 +60,7 @@ std::string ConvertString(const std::wstring& str) {
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
-#pragma region ログ
+#pragma region ログ関連
 	//ログのディレクトリを用意
 	std::filesystem::create_directory("logs");
 	//現在時刻を取得（UTC時刻）
@@ -75,7 +75,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	std::string logFilePath = std::string("logs/") + dateString + ".log";
 	//ファイルを作って書き込み準備
 	std::ofstream logStream(logFilePath);
-#pragma endregion ログ関連
+#pragma endregion 
 
 	WNDCLASS wc{};
 	//ウィンドウプロシージャ
