@@ -7,6 +7,14 @@
 #include <fstream>
 //時間を扱うライブラリ
 #include <chrono>
+#include <format>
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <cassert>
+
+
+#pragma comment(lib,"d3d12.lib")
+#pragma comment(lib,"dxgi.lib")
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -22,11 +30,11 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void Log(std::ostream& os, const std::string& message)
+void Log(const std::string& message)
 {
-	os << message << std::endl;
 	OutputDebugStringA(message.c_str());
 }
+
 
 std::wstring ConvertString(const std::string& str) {
 	if (str.empty()) {
@@ -56,6 +64,11 @@ std::string ConvertString(const std::wstring& str) {
 	return result;
 }
 
+void Log(std::ostream& os, const std::string& message)
+{
+	os << message << std::endl;
+	OutputDebugStringA(message.c_str());
+}
 
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -113,6 +126,57 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg{};
+
+	//DXGIファクトリーの生成
+	IDXGIFactory7* dxgiFactor = nullptr;
+	//関数が成功したかどうかをSUCCEEDEDマクロで判定出来る
+	HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactor));
+	//初期化の根本的な部分でエラーが出た場合はプログラムが間違っているか、どうにも場合が多いのでassertにしておく
+	assert(SUCCEEDED(hr));
+	//使用するアダプタ用の変数。最初にnullptrを入れておく
+	IDXGIAdapter4* useAdapter = nullptr;
+	//良い順にアダプタを頼む
+	for (UINT i = 0; dxgiFactor->EnumAdapterByGpuPreference(i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&useAdapter)) != DXGI_ERROR_NOT_FOUND; ++i)
+	{
+		//アダプタの情報を取得する
+		DXGI_ADAPTER_DESC3 adapterDesc{};
+		hr = useAdapter->GetDesc3(&adapterDesc);
+		assert(SUCCEEDED(hr));//取得出来ないのは一大事
+		//ソフトウェアアダプタでなければ採用
+		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE))
+		{
+			//採用したアダプタの情報をログに主力。wstringの方なので注意
+			Log(ConvertString(std::format(L"Use Adapate:{}\n", adapterDesc.Description)));
+			break;
+		}
+		useAdapter = nullptr;//ソフトウェアアダプタの場合は見なかったことにする
+	}
+	//適切なアダプタが見つからなかったので起動できない
+	assert(useAdapter != nullptr);
+
+	ID3D12Device* device = nullptr;
+	//機能レベルとログ出力用の文字列
+	D3D_FEATURE_LEVEL featureLevels[] = {
+	D3D_FEATURE_LEVEL_12_2,D3D_FEATURE_LEVEL_12_1,D3D_FEATURE_LEVEL_12_0
+	};
+	const char* featureLevelStrings[] = { "12.2","12.1","12.0" };
+	//高い順に生成出来るか試していく
+	for (size_t i = 0; i < _countof(featureLevels); i++)
+	{
+		//採用したアダプタでデバイスを生成
+		hr = D3D12CreateDevice(useAdapter, featureLevels[i], IID_PPV_ARGS(&device));
+		//指定した機能レベルでデバイスを生成できたかを確認
+		if (SUCCEEDED(hr))
+		{
+			//生成出来たのでログ出力を行ってループを抜ける
+			Log(std::format("FeatureLevel : {}\n", featureLevelStrings[i]));
+			break;
+		}
+	}
+	//デバイスの生成が上手く行かなかったので起動できない
+	assert(device != nullptr);
+	Log("Complete create D3D12Device!!!\n");//初期化完了のログを出す
+
 	//ウィンドウのｘボタンが押されるまでループ
 	while (msg.message != WM_QUIT)
 	{
