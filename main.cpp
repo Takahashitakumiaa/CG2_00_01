@@ -35,6 +35,10 @@ void Log(const std::string& message)
 	OutputDebugStringA(message.c_str());
 }
 
+void Log(const std::wstring& message)
+{
+	Log(ConvertString(message));
+}
 
 std::wstring ConvertString(const std::string& str) {
 	if (str.empty()) {
@@ -126,6 +130,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg{};
+
+	/*Log(std::format("enemy"))*/
 
 	//DXGIファクトリーの生成
 	IDXGIFactory7* dxgiFactor = nullptr;
