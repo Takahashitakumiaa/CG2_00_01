@@ -11,10 +11,12 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <cassert>
+#include <dbghelp.h>
+#include <strsafe.h>
 
-
-#pragma comment(lib,"d3d12.lib")
+#pragma comment(lib,"d3d12.lib") 
 #pragma comment(lib,"dxgi.lib")
+#pragma comment(lib,"Dbghelp.lib")
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -33,11 +35,6 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 void Log(const std::string& message)
 {
 	OutputDebugStringA(message.c_str());
-}
-
-void Log(const std::wstring& message)
-{
-	Log(ConvertString(message));
 }
 
 std::wstring ConvertString(const std::string& str) {
@@ -67,6 +64,10 @@ std::string ConvertString(const std::wstring& str) {
 	WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
 	return result;
 }
+void Log(const std::wstring& message)
+{
+	Log(ConvertString(message));
+}
 
 void Log(std::ostream& os, const std::string& message)
 {
@@ -74,8 +75,34 @@ void Log(std::ostream& os, const std::string& message)
 	OutputDebugStringA(message.c_str());
 }
 
+static LONG WINAPI ExportDump(EXCEPTION_POINTERS* exception)
+{
+	//時刻を取得して、時刻を名前に入れたファイルを作成。Dumosディレクトリ以下に出力
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+	wchar_t filePath[MAX_PATH] = { 0 };
+	CreateDirectory(L"./Dumps", nullptr);
+	StringCchPrintfW(filePath, MAX_PATH, L"%04d-%02d%02d-%02d%02d.dmp", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute);
+	HANDLE dumpFileHandle = CreateFile(filePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0);
+	//processId(このexeのId)とクラッシュ（例外）の発生したthreadIdを取得
+	DWORD processId = GetCurrentProcessId();
+	DWORD threadID = GetCurrentThreadId();
+	//設定情報を入力
+	MINIDUMP_EXCEPTION_INFORMATION minidumpInfomation{ 0 };
+	minidumpInfomation.ThreadId = threadID;
+	minidumpInfomation.ExceptionPointers = exception;
+	minidumpInfomation.ClientPointers = true;
+	//Dumpを出力。MinidumpNomalは最低限の情報を出力するフラグ
+	MiniDumpWriteDump(GetCurrentProcess(), processId, dumpFileHandle, MiniDumpNormal, &minidumpInfomation, nullptr, nullptr);
+	//他に関連づけられているSEH例外ハンドラがあれば実行。通常はプロセスを終了する
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
+
+	//誰も補足しなかった場合に（Unhandled）、補足する関数
+	SetUnhandledExceptionFilter(ExportDump);
 
 #pragma region ログ関連
 	//ログのディレクトリを用意
@@ -131,7 +158,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	MSG msg{};
 
-	/*Log(std::format("enemy"))*/
 
 	//DXGIファクトリーの生成
 	IDXGIFactory7* dxgiFactor = nullptr;
@@ -183,6 +209,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	assert(device != nullptr);
 	Log("Complete create D3D12Device!!!\n");//初期化完了のログを出す
 
+
+
 	//ウィンドウのｘボタンが押されるまでループ
 	while (msg.message != WM_QUIT)
 	{
@@ -195,6 +223,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		else
 		{
 			//ゲームの処理
+			/*uint32_t* p = nullptr;
+			*p = 100;*/
 		}
 
 
