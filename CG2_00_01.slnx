@@ -7,4 +7,5 @@
     <File Path="exclusion.dic" />
   </Folder>
   <Project Path="CG2_00_01.vcxproj" Id="eb380a84-86db-447b-9500-a98a47da89e0" />
+  <Project Path="externals/DirectXTex/DirectXTex_Desktop_2022_Win10.vcxproj" Id="371b9fa9-4c90-4ac6-a123-aced756d6c77" />
 </Solution>
