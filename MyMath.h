@@ -6,9 +6,53 @@ struct Matrix4x4
 	float m[4][4];
 };
 
+struct Vector2
+{
+	float x, y;
+};
+
 struct Vector3
 {
 	float x, y, z;
+};
+
+struct Vector4
+{
+	float x, y, z, w;
+};
+
+struct VertexData
+{
+	Vector4 position;
+	Vector2 texcoord;
+	Vector3 normal;
+};
+
+struct Transform
+{
+	Vector3 scale;
+	Vector3 rotate;
+	Vector3 translate;
+};
+
+struct Material
+{
+	Vector4 color;
+	int32_t enableLighing;
+	float padding[3];
+};
+
+struct TransformationMatrix
+{
+	Matrix4x4 WVP;
+	Matrix4x4 World;
+};
+
+struct DirectionalLight
+{
+	Vector4 color;//ライトの色
+	Vector3 direction;//ライトの向き
+	float intensity;//輝度
 };
 
 #pragma region 00-01
@@ -16,8 +60,8 @@ struct Vector3
 //Vector3 Subtract(const Vector3& v1, const Vector3& v2);
 //Vector3 Multiply(float scalar, const Vector3& v);
 //float Dot(const Vector3& v1, const Vector3& v2);
-//float Length(const Vector3& v);
-//Vector3 Normalize(const Vector3& v);
+float Length(const Vector3& v);
+Vector3 Normalize(const Vector3& v);
 //Vector3 Cross(const Vector3& v1, const Vector3& v2);
 #pragma endregion
 

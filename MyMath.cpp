@@ -22,19 +22,19 @@
 //	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 //}
 //
-//// 長さ
-//float Length(const Vector3& v) {
-//	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-//}
-//
-//// 正規化
-//Vector3 Normalize(const Vector3& v) {
-//	float len = Length(v);
-//	if (len != 0.0f) {
-//		return { v.x / len, v.y / len, v.z / len };
-//	}
-//	return { 0.0f, 0.0f, 0.0f };
-//}
+// 長さ
+float Length(const Vector3& v) {
+	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+// 正規化
+Vector3 Normalize(const Vector3& v) {
+	float len = Length(v);
+	if (len != 0.0f) {
+		return { v.x / len, v.y / len, v.z / len };
+	}
+	return { 0.0f, 0.0f, 0.0f };
+}
 #pragma endregion
 
 #pragma region 00-02
