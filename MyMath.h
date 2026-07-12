@@ -1,6 +1,11 @@
 #pragma once
 #include <cmath>
 
+struct Matrix3x3
+{
+	float m[3][3];
+};
+
 struct Matrix4x4
 {
 	float m[4][4];
@@ -40,6 +45,7 @@ struct Material
 	Vector4 color;
 	int32_t enableLighing;
 	float padding[3];
+	Matrix4x4 uvTransform;
 };
 
 struct TransformationMatrix
