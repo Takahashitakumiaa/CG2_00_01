@@ -1,5 +1,8 @@
 #pragma once
 #include <cmath>
+#include <vector>
+#include <cstdint>
+#include <string>
 
 struct Matrix3x3
 {
@@ -59,6 +62,17 @@ struct DirectionalLight
 	Vector4 color;//ライトの色
 	Vector3 direction;//ライトの向き
 	float intensity;//輝度
+};
+
+struct MaterialData
+{
+	std::string textureFilePath;
+};
+
+struct ModelData
+{
+	std::vector<VertexData> vertices;
+	MaterialData material;
 };
 
 #pragma region 00-01
