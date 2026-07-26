@@ -23,6 +23,9 @@
 #include <sstream>
 #include <wrl.h>
 #include <xaudio2.h>
+#define DIRECTINPUT_VERSION       0x0800//DirectInputのバージョン指定
+#include <dinput.h>
+#include "keyInput.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -37,6 +40,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"dxcompiler.lib")
 #pragma comment(lib,"xaudio2.lib")
+#pragma comment(lib,"dinput8.lib")
+#pragma comment(lib,"dxguid.lib")
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -1336,6 +1341,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		materialData->uvTransform = MakeIdentity4x4();
 		materialDataSprite->uvTransform = MakeIdentity4x4();
 
+		//DirectInputの初期化
+		Microsoft::WRL::ComPtr<IDirectInput8> directInput = nullptr;
+		hr = DirectInput8Create(wc.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(directInput.GetAddressOf()), nullptr);
+		assert(SUCCEEDED(hr));
+
+		//キーボードデバイスの生成
+		Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;
+		hr = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
+		assert(SUCCEEDED(hr));
+		//入力データの形式のセット
+		hr = keyboard->SetDataFormat(&c_dfDIKeyboard);//標準形式
+		assert(SUCCEEDED(hr));
+		//排他制御レベルのセット
+		hr = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+		assert(SUCCEEDED(hr));
+
 #pragma endregion
 #pragma region IMGUI
 #ifdef USE_IMGUI
@@ -1374,6 +1395,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				//ゲームの処理
 				/*uint32_t* p = nullptr;
 				*p = 100;*/
+
+				keyInput::Update(keyboard.Get());
+
+				/*if (keyInput::IsTrigger(DIK_0))
+				{
+					OutputDebugStringA("Hit 0\n");
+				}*/
+
 #ifdef USE_IMGUI
 				ImGui_ImplDX12_NewFrame();
 				ImGui_ImplWin32_NewFrame();
