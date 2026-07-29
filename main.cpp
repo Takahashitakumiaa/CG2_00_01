@@ -26,6 +26,7 @@
 #define DIRECTINPUT_VERSION       0x0800//DirectInputのバージョン指定
 #include <dinput.h>
 #include "keyInput.h"
+#include "DebugCamera.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -1357,6 +1358,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		hr = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
 		assert(SUCCEEDED(hr));
 
+		DebugCamera debugCamera;
+		debugCamera.Initialize();
+
 #pragma endregion
 #pragma region IMGUI
 #ifdef USE_IMGUI
@@ -1398,10 +1402,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 				keyInput::Update(keyboard.Get());
 
-				/*if (keyInput::IsTrigger(DIK_0))
+				if (keyInput::IsTrigger(DIK_RETURN))
 				{
-					OutputDebugStringA("Hit 0\n");
-				}*/
+					debugCamera.SetActive(!debugCamera.IsActive());
+				}
+
+				debugCamera.Update();
 
 #ifdef USE_IMGUI
 				ImGui_ImplDX12_NewFrame();
@@ -1425,7 +1431,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					directionalLightData->direction = Normalize(rawDir);
 				}
 
-				// 2. ライトの輝度（幅・強さ）
+				// ライトの輝度（幅・強さ）
 				ImGui::SliderFloat("Light Intensity", &directionalLightData->intensity, 0.0f, 5.0f);
 
 				ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
@@ -1447,12 +1453,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region 三角形の処理
 
+				Matrix4x4 viewMatrix;
+				Matrix4x4 projectionMatrix;
+
+				if (debugCamera.IsActive())
+				{
+					//
+					viewMatrix = debugCamera.GetMatView();
+					projectionMatrix = debugCamera.GetMatProjection();
+				}
+				else
+				{
+					Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+					viewMatrix = Inverse(cameraMatrix);
+					projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
+				}
+
 				/*transform.rotate.y += 0.03f;*/
 				Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 
-				Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-				Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-				Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
 				Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 				wvpData->WVP = worldViewProjectionMatrix;
 				wvpData->World = worldMatrix;
