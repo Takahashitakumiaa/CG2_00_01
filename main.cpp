@@ -942,6 +942,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		D3D12_BLEND_DESC blendDesc{};
 		//全ての色要素を書き込む
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 
 		//RasterizeStateの設定
 		D3D12_RASTERIZER_DESC rasterizeDesc{};
@@ -997,7 +1004,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		//----------
 
 		//モデル読み込み
-		ModelData modelData = LoadObjFile("resources", "axis.obj");
+		ModelData modelData = LoadObjFile("resources", "plane.obj");
 		//頂点リソースを作る
 		Microsoft::WRL::ComPtr <ID3D12Resource> vertexResource = CreateBufferResource(device.Get(), sizeof(VertexData) * modelData.vertices.size());
 
@@ -1018,26 +1025,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());
 
 		vertexResource->Unmap(0, nullptr);
-
-		////左下
-		//vertexData[0].position = { -0.5f,-0.5f,0.0f,1.0f };
-		//vertexData[0].texcoord = { 0.0f,1.0f };
-		////上
-		//vertexData[1].position = { 0.0f,0.5f,0.0f,1.0f };
-		//vertexData[1].texcoord = { 0.5f,0.0f };
-		////右下
-		//vertexData[2].position = { 0.5f,-0.5f,0.0f,1.0f };
-		//vertexData[2].texcoord = { 1.0f,1.0f };
-
-		////左下2
-		//vertexData[3].position = { -0.5f,-0.5f,0.5f,1.0f };
-		//vertexData[3].texcoord = { 0.0f,1.0f };
-		////上2
-		//vertexData[4].position = { 0.0f,0.0f,0.0f,1.0f };
-		//vertexData[4].texcoord = { 0.5f,0.0f };
-		////右下2
-		//vertexData[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
-		//vertexData[5].texcoord = { 1.0f,1.0f };
 
 		//----------
 		//球
@@ -1422,6 +1409,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				ImGui::SliderAngle("OBJ Rotate X", &transform.rotate.x);
 				ImGui::SliderAngle("OBJ Rotate Y", &transform.rotate.y);
 				ImGui::SliderAngle("OBJ Rotate Z", &transform.rotate.z);
+				ImGui::ColorEdit4("OBJ Color", &materialData->color.x);
 
 				ImGui::Checkbox("useMonsterBall", &useMonsterBall);
 				static float lightDirection[3] = { 1.0f, -1.0f, 1.0f };
