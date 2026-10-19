@@ -13,7 +13,7 @@ void DebugCamera::Initialize()
 	matProjection_ = MakePerspectiveFovMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 1000.0f);
 }
 
-void DebugCamera::Update()
+void DebugCamera::Update(const KeyInput& keyInput)
 {
 	if (!isActive_)
 	{
@@ -29,31 +29,31 @@ void DebugCamera::Update()
 
 	//回転
   // X軸回転 (縦の首振り)
-	if (keyInput::IsPress(DIK_UP))
+	if (keyInput.PushKey(DIK_UP))
 	{
 		deltaX -= rotateSpeed;
 	}
-	if (keyInput::IsPress(DIK_DOWN))
+	if (keyInput.PushKey(DIK_DOWN))
 	{
 		deltaX += rotateSpeed;
 	}
 
 	// Y軸回転 (横の首振り)
-	if (keyInput::IsPress(DIK_LEFT))
+	if (keyInput.PushKey(DIK_LEFT))
 	{
 		deltaY -= rotateSpeed;
 	}
-	if (keyInput::IsPress(DIK_RIGHT))
+	if (keyInput.PushKey(DIK_RIGHT))
 	{
 		deltaY += rotateSpeed;
 	}
 
 	// Z軸回転 (画面傾き・ロール)
-	if (keyInput::IsPress(DIK_U))
+	if (keyInput.PushKey(DIK_U))
 	{
 		deltaZ -= rotateSpeed;
 	} // 左傾き
-	if (keyInput::IsPress(DIK_O))
+	if (keyInput.PushKey(DIK_O))
 	{
 		deltaZ += rotateSpeed;
 	} //
@@ -69,7 +69,7 @@ void DebugCamera::Update()
 
 	//入力によるカメラの移動や回転
 	//前後移動SS
-	if (keyInput::IsPress(DIK_W))
+	if (keyInput.PushKey(DIK_W))
 	{
 		//カメラ移動ベクトル
 		Vector3 move = { 0,0,speed };
@@ -83,7 +83,7 @@ void DebugCamera::Update()
 		translation_.y += rotatedMove.y;
 		translation_.z += rotatedMove.z;
 	}
-	if (keyInput::IsPress(DIK_S))
+	if (keyInput.PushKey(DIK_S))
 	{
 		Vector3 move = { 0, 0, -speed };
 
@@ -97,7 +97,7 @@ void DebugCamera::Update()
 		translation_.z += rotatedMove.z;
 	}
 	//左右移動
-	if (keyInput::IsPress(DIK_D))
+	if (keyInput.PushKey(DIK_D))
 	{
 		//カメラ移動ベクトル
 		Vector3 move = { speed,0,0 };
@@ -111,7 +111,7 @@ void DebugCamera::Update()
 		translation_.y += rotatedMove.y;
 		translation_.z += rotatedMove.z;
 	}
-	if (keyInput::IsPress(DIK_A))
+	if (keyInput.PushKey(DIK_A))
 	{
 		Vector3 move = { -speed, 0,0 };
 
