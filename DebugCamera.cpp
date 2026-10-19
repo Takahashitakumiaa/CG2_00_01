@@ -29,31 +29,31 @@ void DebugCamera::Update()
 
 	//回転
   // X軸回転 (縦の首振り)
-	if (keyInput::IsPress(DIK_UP))
+	if (KeyInput::IsPress(DIK_UP))
 	{
 		deltaX -= rotateSpeed;
 	}
-	if (keyInput::IsPress(DIK_DOWN))
+	if (KeyInput::IsPress(DIK_DOWN))
 	{
 		deltaX += rotateSpeed;
 	}
 
 	// Y軸回転 (横の首振り)
-	if (keyInput::IsPress(DIK_LEFT))
+	if (KeyInput::IsPress(DIK_LEFT))
 	{
 		deltaY -= rotateSpeed;
 	}
-	if (keyInput::IsPress(DIK_RIGHT))
+	if (KeyInput::IsPress(DIK_RIGHT))
 	{
 		deltaY += rotateSpeed;
 	}
 
 	// Z軸回転 (画面傾き・ロール)
-	if (keyInput::IsPress(DIK_U))
+	if (KeyInput::IsPress(DIK_U))
 	{
 		deltaZ -= rotateSpeed;
 	} // 左傾き
-	if (keyInput::IsPress(DIK_O))
+	if (KeyInput::IsPress(DIK_O))
 	{
 		deltaZ += rotateSpeed;
 	} //
@@ -69,7 +69,7 @@ void DebugCamera::Update()
 
 	//入力によるカメラの移動や回転
 	//前後移動SS
-	if (keyInput::IsPress(DIK_W))
+	if (KeyInput::IsPress(DIK_W))
 	{
 		//カメラ移動ベクトル
 		Vector3 move = { 0,0,speed };
@@ -83,7 +83,7 @@ void DebugCamera::Update()
 		translation_.y += rotatedMove.y;
 		translation_.z += rotatedMove.z;
 	}
-	if (keyInput::IsPress(DIK_S))
+	if (KeyInput::IsPress(DIK_S))
 	{
 		Vector3 move = { 0, 0, -speed };
 
@@ -97,7 +97,7 @@ void DebugCamera::Update()
 		translation_.z += rotatedMove.z;
 	}
 	//左右移動
-	if (keyInput::IsPress(DIK_D))
+	if (KeyInput::IsPress(DIK_D))
 	{
 		//カメラ移動ベクトル
 		Vector3 move = { speed,0,0 };
@@ -111,7 +111,7 @@ void DebugCamera::Update()
 		translation_.y += rotatedMove.y;
 		translation_.z += rotatedMove.z;
 	}
-	if (keyInput::IsPress(DIK_A))
+	if (KeyInput::IsPress(DIK_A))
 	{
 		Vector3 move = { -speed, 0,0 };
 
