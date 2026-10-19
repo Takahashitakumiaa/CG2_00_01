@@ -8,7 +8,7 @@ public:
 
 	void Initialize();
 
-	void Update();
+	void Update(const KeyInput& keyInput);
 
 	const Matrix4x4& GetMatView() const { return matView_; }
 	const Matrix4x4& GetMatProjection() const { return matProjection_; }

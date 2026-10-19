@@ -1560,21 +1560,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		const float kDeltaTime = 1.0f / 60.0f;
 
-		//DirectInputの初期化
-		Microsoft::WRL::ComPtr<IDirectInput8> directInput = nullptr;
-		hr = DirectInput8Create(wc.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(directInput.GetAddressOf()), nullptr);
-		assert(SUCCEEDED(hr));
+		////DirectInputの初期化
+		//Microsoft::WRL::ComPtr<IDirectInput8> directInput = nullptr;
+		//hr = DirectInput8Create(wc.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(directInput.GetAddressOf()), nullptr);
+		//assert(SUCCEEDED(hr));
 
-		//キーボードデバイスの生成
-		Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;
-		hr = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
-		assert(SUCCEEDED(hr));
-		//入力データの形式のセット
-		hr = keyboard->SetDataFormat(&c_dfDIKeyboard);//標準形式
-		assert(SUCCEEDED(hr));
-		//排他制御レベルのセット
-		hr = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
-		assert(SUCCEEDED(hr));
+		////キーボードデバイスの生成
+		//Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;
+		//hr = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
+		//assert(SUCCEEDED(hr));
+		////入力データの形式のセット
+		//hr = keyboard->SetDataFormat(&c_dfDIKeyboard);//標準形式
+		//assert(SUCCEEDED(hr));
+		////排他制御レベルのセット
+		//hr = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+		//assert(SUCCEEDED(hr));
+
+			//ポインタ
+		KeyInput* keyInput = nullptr;
+		//入力の初期化
+		keyInput = new KeyInput();
+		keyInput->Initialize(wc.hInstance, hwnd);
 
 		DebugCamera debugCamera;
 		debugCamera.Initialize();
@@ -1618,14 +1624,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				/*uint32_t* p = nullptr;
 				*p = 100;*/
 
-				keyInput::Update(keyboard.Get());
+				keyInput->Update();
 
-				if (keyInput::IsTrigger(DIK_RETURN))
+				/*KeyInput::Update(keyboard.Get());
+
+				if (KeyInput::IsTrigger(DIK_RETURN))
+				{
+					debugCamera.SetActive(!debugCamera.IsActive());
+				}*/
+
+				if (keyInput->TriggerKey(DIK_RETURN))
 				{
 					debugCamera.SetActive(!debugCamera.IsActive());
 				}
 
-				debugCamera.Update();
+				debugCamera.Update(*keyInput);
 
 #ifdef USE_IMGUI
 				ImGui_ImplDX12_NewFrame();
@@ -1943,6 +1956,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		//xAudio2解放
 		xAudio2.Reset();
+
+		delete keyInput;
 	}
 	CoUninitialize();
 	return 0;
