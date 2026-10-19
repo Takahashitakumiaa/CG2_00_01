@@ -10,7 +10,7 @@ void KeyInput::Initialize(HINSTANCE hInstance, HWND hwnd)
 	assert(SUCCEEDED(result));
 
 	//キーボードデバイスの生成
-	Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;
+	/*Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;*/
 	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
 	assert(SUCCEEDED(result));
 	//入力データの形式のセット
@@ -22,4 +22,10 @@ void KeyInput::Initialize(HINSTANCE hInstance, HWND hwnd)
 }
 
 void KeyInput::Update()
-{}
+{
+	//キーボード情報の取得開始
+	keyboard->Acquire();
+	//全キーの入力情報の取得する
+	BYTE key[256] = {};
+	keyboard->GetDeviceState(sizeof(key), key);
+}

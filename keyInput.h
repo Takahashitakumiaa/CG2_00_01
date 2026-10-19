@@ -13,6 +13,10 @@
 class KeyInput
 {
 public:
+	//namespace
+	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+public:
 
 	void Initialize(HINSTANCE hInstance, HWND hwnd);
 
@@ -52,4 +56,6 @@ public:
 private:
 	static inline std::array<uint8_t, 256> key{};
 	static inline std::array<uint8_t, 256> preKey{};
+
+	Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard;
 };
