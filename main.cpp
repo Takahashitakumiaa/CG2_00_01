@@ -1626,14 +1626,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 				keyInput->Update();
 
-				KeyInput::Update(keyboard.Get());
+				/*KeyInput::Update(keyboard.Get());
 
 				if (KeyInput::IsTrigger(DIK_RETURN))
 				{
 					debugCamera.SetActive(!debugCamera.IsActive());
+				}*/
+
+				if (keyInput->TriggerKey(DIK_RETURN))
+				{
+					debugCamera.SetActive(!debugCamera.IsActive());
 				}
 
-				debugCamera.Update();
+				debugCamera.Update(*keyInput);
 
 #ifdef USE_IMGUI
 				ImGui_ImplDX12_NewFrame();
@@ -1926,7 +1931,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				assert(SUCCEEDED(hr));
 #pragma endregion
 			}
-			delete keyInput;
 		}
 #ifdef USE_IMGUI
 		ImGui_ImplDX12_Shutdown();
@@ -1952,6 +1956,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		//xAudio2解放
 		xAudio2.Reset();
+
+		delete keyInput;
 	}
 	CoUninitialize();
 	return 0;
