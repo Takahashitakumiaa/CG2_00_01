@@ -28,6 +28,7 @@
 #include "keyInput.h"
 #include "DebugCamera.h"
 #include <random>
+#include <numbers>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -1293,7 +1294,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		Transform transformSphere{ {0.3f, 0.3f, 0.3f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
 
-		Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f} ,{0.0f,0.0f,-5.0f} };
+		Transform cameraTransform{
+			{1.0f,1.0f,1.0f},
+			{std::numbers::pi_v<float> / 3.0f,std::numbers::pi_v<float>,0.0f},
+			{0.0f,23.0f,10.0f}
+		};
 
 		Transform uvTransformSprite{
 			{1.0f,1.0f,1.0f},
@@ -1427,6 +1432,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		wvpResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
 
 		bool useMonsterBall = true;
+		bool useBillboard = true;
+		bool isParticleActive = false; 
+		Vector3 particleRotate = { 0.0f, 0.0f, 0.0f };
 
 		//Sprite用のマテリアルリソースを作る
 		Microsoft::WRL::ComPtr <ID3D12Resource> materialResourceSprite = CreateBufferResource(device.Get(), sizeof(Material));
@@ -1648,15 +1656,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				ImGui::Begin("Object Control");
 
 				// --- パーティクルコントロール ---
-				// 初期値を180度（3.14159265f）にしておくと正面を向きます
-				static float particleRotateY = 3.14159265f;
+				ImGui::Checkbox("Billboard ON/OFF", &useBillboard);
+				ImGui::Checkbox("Move ON/OFF", &isParticleActive);
 
-				// Y軸回転スライダー（SliderAngleを使うと度数法で表示・操作できます）
-				if (ImGui::SliderAngle("Particle Rotate Y", &particleRotateY)) {
-					for (uint32_t index = 0; index < kNumMaxInstance; ++index) {
-						particles[index].transform.rotate.y = particleRotateY;
-					}
-				}
+				ImGui::SliderAngle("Rotate X", &particleRotate.x);
+				ImGui::SliderAngle("Rotate Y", &particleRotate.y);
+				ImGui::SliderAngle("Rotate Z", &particleRotate.z);
+				ImGui::Separator();
 				// --- OBJモデルコントロール ---
 				ImGui::SliderFloat3("OBJ Position", &transform.translate.x, -5.0f, 5.0f);
 				ImGui::SliderAngle("OBJ Rotate X", &transform.rotate.x);
@@ -1709,19 +1715,41 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 				Matrix4x4 viewMatrix;
 				Matrix4x4 projectionMatrix;
+				Matrix4x4 cameraWorld;
 
 				if (debugCamera.IsActive())
 				{
 					//
 					viewMatrix = debugCamera.GetMatView();
 					projectionMatrix = debugCamera.GetMatProjection();
+					cameraWorld = Inverse(viewMatrix);
 				}
 				else
 				{
-					Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-					viewMatrix = Inverse(cameraMatrix);
+					cameraWorld = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+					viewMatrix = Inverse(cameraWorld);
 					projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
+
 				}
+				Matrix4x4 bacckToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
+				//全軸ビルボード
+				Matrix4x4 billboardMatrixFull = Multiply(bacckToFrontMatrix, cameraWorld);
+				billboardMatrixFull.m[3][0] = 0.0f;//平行移動成分はいらない
+				billboardMatrixFull.m[3][1] = 0.0f;
+				billboardMatrixFull.m[3][2] = 0.0f;
+				billboardMatrixFull.m[3][3] = 1.0f;
+
+				// Y軸ビルボード
+				float angleY = std::atan2(cameraWorld.m[2][0], cameraWorld.m[2][2]);
+				Matrix4x4 billboardMatrixY = MakeRotateYMatrix(angleY);
+
+				// X軸ビルボード
+				float angleX = std::atan2(-cameraWorld.m[2][1], cameraWorld.m[2][2]);
+				Matrix4x4 billboardMatrixX = MakeRotateXMatrix(angleX);
+
+				// Z軸ビルボード（
+				float angleZ = std::atan2(cameraWorld.m[0][1], cameraWorld.m[0][0]);
+				Matrix4x4 billboardMatrixZ = MakeRotateZMatrix(angleZ);
 
 				/*transform.rotate.y += 0.03f;*/
 				Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
@@ -1748,14 +1776,73 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					{//生存時間を過ぎていたら更新せず描画対象にしない
 						continue;
 					}
-					float alpha = 1.0f - (particles[index].currentTime / particles[index].lifeTime);
-					particles[index].transform.translate.y += particles[index].velocity.y * kDeltaTime;
-					particles[index].currentTime += kDeltaTime;//経過時間を足す
 
-					Matrix4x4 worldMatrix = MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
-					Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
+					if (isParticleActive)
+					{
+						particles[index].transform.translate.y += particles[index].velocity.y * kDeltaTime;
+						particles[index].currentTime += kDeltaTime;//経過時間を足す
+					}
+
+					float alpha = 1.0f - (particles[index].currentTime / particles[index].lifeTime);
+
+					/*Matrix4x4 worldMatrix = MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);*/
+
+					//// --- ビルボード行列を使って各パーティクルのワールド行列を合成 ---
+					//Matrix4x4 matScale = MakeScaleMatrix(particles[index].transform.scale);
+					//Matrix4x4 matTranslate = MakeTranslateMatrix(particles[index].transform.translate);
+
+					//// World = Scale * Billboard * Translate
+					//Matrix4x4 worldMatrixParticle = Multiply(matScale, Multiply(billboardMatrixFull, matTranslate));
+
+					//if (useBillboard)
+					//{
+					//	// ビルボード有効： Scale * Billboard * Translate
+					//	Matrix4x4 matScale = MakeScaleMatrix(particles[index].transform.scale);
+					//	Matrix4x4 matTranslate = MakeTranslateMatrix(particles[index].transform.translate);
+					//	worldMatrixParticle = Multiply(matScale, Multiply(billboardMatrixFull, matTranslate));
+					//}
+					//else
+					//{
+					//	// ビルボード無効： 通常のアフィン変換 (Scale * Rotate * Translate)
+					//	worldMatrixParticle = MakeAffineMatrix(
+					//		particles[index].transform.scale,
+					//		particles[index].transform.rotate,
+					//		particles[index].transform.translate
+					//	);
+					//}
+
+					Matrix4x4 matScale = MakeScaleMatrix(particles[index].transform.scale);
+
+					// スライダーで指定したXYZ回転角 + 個別パーティクルの初期回転
+					Vector3 totalRotate = {
+						particleRotate.x + particles[index].transform.rotate.x,
+						particleRotate.y + particles[index].transform.rotate.y,
+						particleRotate.z + particles[index].transform.rotate.z
+					};
+					Matrix4x4 matRotateSelf = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, totalRotate, { 0.0f, 0.0f, 0.0f });
+
+					Matrix4x4 matTranslate = MakeTranslateMatrix(particles[index].transform.translate);
+
+					// ワールド行列の合成
+					Matrix4x4 worldMatrixParticle;
+					if (useBillboard)
+					{
+						// ビルボード ON： 正面に向かせた状態でXYZ回転を適用 (Scale * Rotate * Billboard * Translate)
+						worldMatrixParticle = Multiply(matScale, Multiply(matRotateSelf, Multiply(billboardMatrixFull, matTranslate)));
+					}
+					else
+					{
+						// ビルボード OFF： 通常のアフィン変換
+						worldMatrixParticle = MakeAffineMatrix(
+							particles[index].transform.scale,
+							totalRotate,
+							particles[index].transform.translate
+						);
+					}
+
+					Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrixParticle, viewProjectionMatrix);
 					instancingData[index].WVP = worldViewProjectionMatrix;
-					instancingData[index].World = worldMatrix;
+					instancingData[index].World = worldMatrixParticle;
 					instancingData[index].color = particles[index].color;
 					instancingData[index].color.w = alpha;
 					++numInstance;//生きているParticleの数を1つカウントする
