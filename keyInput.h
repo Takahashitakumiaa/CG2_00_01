@@ -1,5 +1,6 @@
 #pragma once
 #define DIRECTINPUT_VERSION 0x0800
+#include "WindowsApp.h"
 #include <dinput.h>
 #include <Windows.h>
 #include <wrl.h>
@@ -18,7 +19,7 @@ public:
 
 public:
 
-	void Initialize(HINSTANCE hInstance, HWND hwnd);
+	void Initialize(/*HINSTANCE hInstance, HWND hwnd*/WindowsApp* windows);
 
 	void Update();
 
@@ -68,4 +69,7 @@ private:
 	BYTE key[256] = {};
 	//前回の全キーの状態
 	BYTE keyPre[256] = {};
+
+	//WindowsAPI
+	WindowsApp* windowsApp_ = nullptr;
 };
