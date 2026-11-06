@@ -1919,6 +1919,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 //
 //				commandList->RSSetViewports(1, &viewport);//Viewportを設定
 //				commandList->RSSetScissorRects(1, &scissorRect);//ScissorRectを設定
+
+//描画前処理
+dxBasics->PreDraw();
+
 //				//RootSignatureを設定。PSOに設定しているけど別途設定が必要
 //				commandList->SetGraphicsRootSignature(rootSignature.Get());
 //				commandList->SetPipelineState(graphicsPipelineState.Get());//PSOを設定
@@ -2054,6 +2058,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 //				assert(SUCCEEDED(hr));
 //				hr = commandList->Reset(commandAllocator.Get(), nullptr);
 //				assert(SUCCEEDED(hr));
+
+//描画後処理
+dxBasics->PostDraw();
+
 //#pragma endregion
 			}
 		}

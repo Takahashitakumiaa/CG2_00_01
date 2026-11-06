@@ -47,6 +47,11 @@ public:
 	//ImGuiの初期化
 	void ImGuiInitialize();
 	
+	//描画前処理
+	void PreDraw();
+	//描画後処理
+	void PostDraw();
+
 	//デスクリプタヒープを生成する
 	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
@@ -81,7 +86,8 @@ private:
 
 	// フェンス関連
 	Microsoft::WRL::ComPtr<ID3D12Fence> fence;
-	uint64_t fenceValue = 0;
+	//フェンス値
+	UINT64 fenceValue = 0;
 	HANDLE fenceEvent = nullptr;
 
 	//dxCompilerを初期化
@@ -96,6 +102,11 @@ private:
 
 	// RTVハンドル
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2]{};
+
+	//ビューポート矩形
+	D3D12_VIEWPORT viewport{};
+	//シザー矩形
+	D3D12_RECT scissorRect{};
 
 	//WindowsAPI
 	WindowsApp* windowsApp = nullptr;
