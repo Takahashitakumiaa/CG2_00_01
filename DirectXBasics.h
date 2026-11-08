@@ -8,6 +8,8 @@
 #include <wrl.h>
 #include <array>
 #include <dxcapi.h>
+#include <chrono>
+#include <thread>
 #include "externals/DirectXTex/DirectXTex.h"
 #include "externals/DirectXTex/d3dx12.h"
 #ifdef USE_IMGUI
@@ -142,4 +144,11 @@ private:
 
 	//指定番号のGPUデスクリプタハンドルを取得する
 	static D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
+	//FPS固定初期化
+	void InitializeFixFPS();
+	//FPS固定更新
+	void UpdateFixFPS();
+	//記録時間(FPS固定用)
+	std::chrono::steady_clock::time_point reference_;
 };
