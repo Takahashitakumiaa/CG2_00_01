@@ -309,10 +309,18 @@ struct Particle
 	float currentTime;
 };
 
+struct Emitter
+{
+	Transform transform;//エミッタのTransform
+	uint32_t conut;//発生現
+	float frequency;//発生頻度
+	float frequencyTime;//頻度用時間
+};
+
 std::random_device seedGenerator;
 std::mt19937 randomEngine(seedGenerator());
 
-Particle MakeNewParticle(std::mt19937& randomEngine)
+Particle MakeNewParticle(std::mt19937& randomEngine,const Vector3& translate)
 {
 	//位置と速度を[-1,1]でランダムに初期化
 	std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
@@ -321,12 +329,26 @@ Particle MakeNewParticle(std::mt19937& randomEngine)
 	Particle particle;
 	particle.transform.scale = { 1.0f,1.0f,1.0f };
 	particle.transform.rotate = { 0.0f,0.0f,0.0f };
-	particle.transform.translate = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	Vector3 randomTranslate{ distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	particle.transform.translate = {
+		translate.x + randomTranslate.x,
+		translate.y + randomTranslate.y,
+		translate.z + randomTranslate.z
+	};
 	particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
 	particle.color = { distColor(randomEngine),distColor(randomEngine),distColor(randomEngine),1.0f };
 	particle.lifeTime = distTime(randomEngine);
 	particle.currentTime = 0;
 	return particle;
+}
+
+std::list<Particle> Emit(const Emitter& emitter, std::mt19937& randomEngine) {
+	std::list<Particle> particles;
+	for (uint32_t count = 0; count < emitter.conut; ++count)
+	{
+		particles.push_back(MakeNewParticle(randomEngine,emitter.transform.translate));
+	}
+	return particles;
 }
 
 struct ParticalForGPU
@@ -971,7 +993,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		//----------
 		//パーティクル
 		//----------
-		const uint32_t kNumMaxInstance = 10;//インスタンス数
+		const uint32_t kNumMaxInstance = 100;//インスタンス数
 		//Instancing用のTransfomationMatrixリソースを作る
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource = dxBasics->CreateBufferResource(sizeof(ParticalForGPU) * kNumMaxInstance);
@@ -1000,10 +1022,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		D3D12_GPU_DESCRIPTOR_HANDLE intancingSrvHandleGPU = dxBasics->GetGPUDescriptorHandle(4);
 		dxBasics->GetDevice()->CreateShaderResourceView(instancingResource.Get(), &instancingSrvDesc, instancingSrvHandleCPU);
 
-		Particle particles[kNumMaxInstance];
+		Emitter emitter{};
+		emitter.transform.translate = { 0.0f,0.0f,0.0f };
+		emitter.transform.rotate = { 0.0f,0.0f,0.0f };
+		emitter.transform.scale = { 1.0f,1.0f,1.0f };
+		emitter.conut = 3;
+		emitter.frequency = 0.5f;//0.5秒ごとに発生
+		emitter.frequencyTime = 0.5f;//発生頻度用の時刻、0で初期化
+
+		std::list<Particle> particles;
 		for (uint32_t index = 0; index < kNumMaxInstance; ++index)
 		{
-			particles[index] = MakeNewParticle(randomEngine);
+			particles.push_back(MakeNewParticle(randomEngine,emitter.transform.translate));
+			particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
+			particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 		}
 
 		const float kDeltaTime = 1.0f / 60.0f;
@@ -1064,6 +1096,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				ImGui::Checkbox("Billboard ON/OFF", &useBillboard);
 				ImGui::Checkbox("Move ON/OFF", &isParticleActive);
 
+				if (ImGui::Button("Add Particle"))
+				{
+					particles.splice(particles.end(), Emit(emitter, randomEngine));
+				}
+				ImGui::DragFloat3("EmitterTranslate", &emitter.transform.translate.x, 0.01f, -100.0f, 100.0f);
+
 				ImGui::SliderAngle("Rotate X", &particleRotate.x);
 				ImGui::SliderAngle("Rotate Y", &particleRotate.y);
 				ImGui::SliderAngle("Rotate Z", &particleRotate.z);
@@ -1113,7 +1151,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 #endif // USE_IMGUI
 
 				//描画用のDescriptorHeapの設定
-				ID3D12DescriptorHeap* descriptorHeaps[] = {dxBasics->GetSrvDescriptorHeap()};
+				ID3D12DescriptorHeap* descriptorHeaps[] = { dxBasics->GetSrvDescriptorHeap() };
 				dxBasics->GetCommandList()->SetDescriptorHeaps(1, descriptorHeaps);
 
 #pragma region 三角形の処理
@@ -1175,32 +1213,33 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 
 				uint32_t numInstance = 0;//描画すべきインスタンス数	
-				for (uint32_t index = 0; index < kNumMaxInstance; ++index)
+				for (/*uint32_t index = 0; index < kNumMaxInstance; ++index*/std::list<Particle>::iterator particleIterator = particles.begin(); particleIterator != particles.end();)
 				{
-					if (particles[index].lifeTime <= particles[index].currentTime)
-					{//生存時間を過ぎていたら更新せず描画対象にしない
+					if ((*particleIterator).lifeTime <= (*particleIterator).currentTime)
+					{
+						particleIterator = particles.erase(particleIterator);//生存時間を過ぎたparticleから消す。戻り値が次のイテレータとなる
 						continue;
 					}
 
 					if (isParticleActive)
 					{
-						particles[index].transform.translate.y += particles[index].velocity.y * kDeltaTime;
-						particles[index].currentTime += kDeltaTime;//経過時間を足す
+						particleIterator->transform.translate.y += particleIterator->velocity.y * kDeltaTime;
+						particleIterator->currentTime += kDeltaTime;//経過時間を足す
 					}
 
-					float alpha = 1.0f - (particles[index].currentTime / particles[index].lifeTime);
+					float alpha = 1.0f - (particleIterator->currentTime / particleIterator->lifeTime);
 
-					Matrix4x4 matScale = MakeScaleMatrix(particles[index].transform.scale);
+					Matrix4x4 matScale = MakeScaleMatrix(particleIterator->transform.scale);
 
 					// スライダーで指定したXYZ回転角 + 個別パーティクルの初期回転
 					Vector3 totalRotate = {
-						particleRotate.x + particles[index].transform.rotate.x,
-						particleRotate.y + particles[index].transform.rotate.y,
-						particleRotate.z + particles[index].transform.rotate.z
+						particleRotate.x + particleIterator->transform.rotate.x,
+						particleRotate.y + particleIterator->transform.rotate.y,
+						particleRotate.z + particleIterator->transform.rotate.z
 					};
 					Matrix4x4 matRotateSelf = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, totalRotate, { 0.0f, 0.0f, 0.0f });
 
-					Matrix4x4 matTranslate = MakeTranslateMatrix(particles[index].transform.translate);
+					Matrix4x4 matTranslate = MakeTranslateMatrix(particleIterator->transform.translate);
 
 					// ワールド行列の合成
 					Matrix4x4 worldMatrixParticle;
@@ -1213,18 +1252,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					{
 						// ビルボード OFF： 通常のアフィン変換
 						worldMatrixParticle = MakeAffineMatrix(
-							particles[index].transform.scale,
+							particleIterator->transform.scale,
 							totalRotate,
-							particles[index].transform.translate
+							particleIterator->transform.translate
 						);
 					}
 
-					Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrixParticle, viewProjectionMatrix);
-					instancingData[index].WVP = worldViewProjectionMatrix;
-					instancingData[index].World = worldMatrixParticle;
-					instancingData[index].color = particles[index].color;
-					instancingData[index].color.w = alpha;
-					++numInstance;//生きているParticleの数を1つカウントする
+					if (numInstance < kNumMaxInstance)
+					{
+						Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrixParticle, viewProjectionMatrix);
+						instancingData[numInstance].WVP = worldViewProjectionMatrix;
+						instancingData[numInstance].World = worldMatrixParticle;
+						instancingData[numInstance].color = particleIterator -> color;
+						instancingData[numInstance].color.w = alpha;
+						++numInstance;//生きているParticleの数を1つカウントする
+					}
+					++particleIterator;//次のイテレータに進める
+				}
+
+				emitter.frequencyTime += kDeltaTime;//時刻を進める
+				if (emitter.frequency<=emitter.frequencyTime)
+				{//頻度より大きいなら発生
+					particles.splice(particles.end(), Emit(emitter, randomEngine));//発生処理
+					emitter.frequencyTime -= emitter.frequency;//余計に過ぎた時間も加味して頻度計算する
 				}
 
 				//描画前処理
@@ -1267,7 +1317,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				dxBasics->GetCommandList()->SetGraphicsRootDescriptorTable(2, particleTextureSrvHandleGPU);
 
 				//描画6頂点の板ポリゴンを、kNumInstance(今回は10)だけInstance描画を行う
-				dxBasics->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), kNumMaxInstance, 0, 0);
+				dxBasics->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), numInstance, 0, 0);
 
 				//-----------
 				//球
