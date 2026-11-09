@@ -584,10 +584,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		rasterizeDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 		//Shaderをコンパイルする
-		Microsoft::WRL::ComPtr <IDxcBlob> vertexShaderBlob = dxBasics->CompileShader(L"Object3d.VS.hlsl", L"vs_6_0");
+		Microsoft::WRL::ComPtr <IDxcBlob> vertexShaderBlob = dxBasics->CompileShader(L"resources/shaders/Object3d.VS.hlsl", L"vs_6_0");
 		assert(vertexShaderBlob != nullptr);
 
-		Microsoft::WRL::ComPtr <IDxcBlob> pixelShaderBlob = dxBasics->CompileShader(L"Object3d.PS.hlsl", L"ps_6_0");
+		Microsoft::WRL::ComPtr <IDxcBlob> pixelShaderBlob = dxBasics->CompileShader(L"resources/shaders/Object3d.PS.hlsl", L"ps_6_0");
 		assert(pixelShaderBlob != nullptr);
 
 		//PSOを生成する
@@ -626,10 +626,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		assert(SUCCEEDED(hr));
 
 		//------パーティクル用のPSO------
-		Microsoft::WRL::ComPtr<IDxcBlob> particleVSBlob = dxBasics->CompileShader(L"Particle.VS.hlsl", L"vs_6_0");
+		Microsoft::WRL::ComPtr<IDxcBlob> particleVSBlob = dxBasics->CompileShader(L"resources/shaders/Particle.VS.hlsl", L"vs_6_0");
 		assert(particleVSBlob != nullptr);
 
-		Microsoft::WRL::ComPtr<IDxcBlob> particlePSBlob = dxBasics->CompileShader(L"Particle.PS.hlsl", L"ps_6_0");
+		Microsoft::WRL::ComPtr<IDxcBlob> particlePSBlob = dxBasics->CompileShader(L"resources/shaders/Particle.PS.hlsl", L"ps_6_0");
 		assert(particlePSBlob != nullptr);
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC particlePipelineStateDesc = graphicsPipelineStateDesc; // 基本設定はコピー
