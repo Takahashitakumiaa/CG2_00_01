@@ -16,14 +16,32 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\engine">
+      <UniqueIdentifier>{89a32b59-2d51-41cd-9e59-fc51b3930fd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\engine\base">
+      <UniqueIdentifier>{529b5eba-6158-40ef-a09b-afca94e2542d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\engine\input">
+      <UniqueIdentifier>{b7662dc2-4e7d-4aab-b2f3-0db5eea826fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\engine\math">
+      <UniqueIdentifier>{07a3922a-8579-484a-9b94-7b6a3a73f6b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\engine\utility">
+      <UniqueIdentifier>{2c202f59-54e2-4a95-9743-0d2fba85ebd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="シェーダーファイル">
+      <UniqueIdentifier>{854c729e-c2b3-4aed-93da-d5edaa791238}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\application">
+      <UniqueIdentifier>{44b4391f-01cc-4c80-a4f6-e03b1f63f028}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\application\camera">
+      <UniqueIdentifier>{4a9f4ef6-c849-4e2d-9f8e-87f5735cc720}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="application\main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\math\MyMath.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="externals\imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -46,37 +64,48 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="application\camera\DebugCamera.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\application\camera</Filter>
     </ClCompile>
-    <ClCompile Include="engine\input\KeyInput.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\base\WindowsApp.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\base\DirectXBasics.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\utility\Logger.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\utility\StringUtility.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="application\main.cpp">
+      <Filter>ソース ファイル\application</Filter>
     </ClCompile>
     <ClCompile Include="engine\base\D3DResourceLeakChecker.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\base\WindowsApp.cpp">
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\input\KeyInput.cpp">
+      <Filter>ソース ファイル\engine\input</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\MyMath.cpp">
+      <Filter>ソース ファイル\engine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\base\DirectXBasics.cpp">
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\utility\StringUtility.cpp">
+      <Filter>ソース ファイル\engine\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\utility\Logger.cpp">
+      <Filter>ソース ファイル\engine\utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="resources\shaders\Object3d.VS.hlsl" />
-    <FxCompile Include="resources\shaders\Object3d.PS.hlsl" />
-    <FxCompile Include="resources\shaders\Particle.PS.hlsl" />
-    <FxCompile Include="resources\shaders\Particle.VS.hlsl" />
+    <FxCompile Include="resources\shaders\Particle.VS.hlsl">
+      <Filter>シェーダーファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="resources\shaders\Particle.PS.hlsl">
+      <Filter>シェーダーファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="resources\shaders\Object3d.VS.hlsl">
+      <Filter>シェーダーファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="resources\shaders\Object3d.PS.hlsl">
+      <Filter>シェーダーファイル</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="engine\math\MyMath.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="externals\imgui\imgui.h">
       <Filter>imgui</Filter>
     </ClInclude>
@@ -101,26 +130,29 @@
     <ClInclude Include="externals\imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="engine\input\KeyInput.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="application\camera\DebugCamera.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\base\WindowsApp.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\base\DirectXBasics.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\utility\Logger.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\utility\StringUtility.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ソース ファイル\application\camera</Filter>
     </ClInclude>
     <ClInclude Include="engine\base\D3DResourceLeakChecker.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\base\DirectXBasics.h">
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\base\WindowsApp.h">
+      <Filter>ソース ファイル\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\input\KeyInput.h">
+      <Filter>ソース ファイル\engine\input</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\MyMath.h">
+      <Filter>ソース ファイル\engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\utility\StringUtility.h">
+      <Filter>ソース ファイル\engine\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\utility\Logger.h">
+      <Filter>ソース ファイル\engine\utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -129,7 +161,11 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\shaders\Object3d.hlsli" />
-    <None Include="resources\shaders\Particle.hlsli" />
+    <None Include="resources\shaders\Particle.hlsli">
+      <Filter>シェーダーファイル</Filter>
+    </None>
+    <None Include="resources\shaders\Object3d.hlsli">
+      <Filter>シェーダーファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>
