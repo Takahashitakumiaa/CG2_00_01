@@ -1,5 +1,5 @@
 # リポジトリ内の不要なファイルを見つけるためのGitHub Actions
-name: UnwantedCheakFiles
+name: UnwantedCheckFiles
 
 on:
   #GitHubのActionsタブから手動で実行できるようにする
@@ -14,10 +14,10 @@ on:
 # パターンはスペース区切りで指定します
 env:
   #特定のファイル名(拡張子など)のパターン
-  UNWANTED_NAME_PATTENS: "*.pdb *.ilk *.user *.ncb *.suo *.log *.dmp *.zip imgui.ini desktop.ini dxcompiler.dll dxil.dll"
+  UNWANTED_NAME_PATTERNS: "*.pdb *.ilk *.user *.ncb *.suo *.log *.dmp *.zip imgui.ini desktop.ini dxcompiler.dll dxil.dll"
 
   # ディレクトリ名のパターン(ビルド出力フォルダなど)
-  UNWANTED_DIR_PATTENS: "generated x64 win32 arm64 .vs bin ipch logs Dump"
+  UNWANTED_DIR_PATTERNS: "generated x64 win32 arm64 .vs bin ipch logs Dump"
 jobs:
   check-files:
     name: 不要なファイルを検索
@@ -30,13 +30,13 @@ jobs:
         run: |
           # ディレクトリ条件を構築 (最初の不要な -o を後で削除)
           DIR_CONDITIONS=()
-          for pattern in $UNWANTED_DIR_PATTENS; do
+          for pattern in $UNWANTED_DIR_PATTERNS; do
             DIR_CONDITIONS+=(-o -iname "$pattern")
             done
             unset DIR_CONDITIONS[0]  
           # ファイル条件を構築 (最初の不要な -o を後で削除)
           NAME_CONDITIONS=()
-          for pattern in $UNWANTED_NAME_PATTENS; do
+          for pattern in $UNWANTED_NAME_PATTERNS; do
             NAME_CONDITIONS+=(-o -iname "$pattern")
            done
           unset NAME_CONDITIONS[0]  
@@ -44,7 +44,7 @@ jobs:
           # 1. .git を除外
           # 2. 不要なディレクトリを検索(-type d)し、見つけたらパスを出力(-print)し、その中身を枝刈り(-prune)
           # 3. または ( -o ) 不要なファイルを検索(-type f)し、パスを出力(-print)
-          UNWANTED_LIST=$(find . -push "./.git" -prune -o \
+          UNWANTED_LIST=$(find . -path "./.git" -prune -o \
             \( \( "${DIR_CONDITIONS[@]}" \) -a -type d -print -prune \) -o \
             \( \( "${NAME_CONDITIONS[@]}" \) -a -type f -print \) \
           )
