@@ -375,9 +375,6 @@ void DirectXBasics::PostDraw()
 	hr = commandList->Close();
 	assert(SUCCEEDED(hr));
 
-	//FPS固定更新
-	UpdateFixFPS();
-
 	//GPUにコマンドリストの実行を行わせる
 	ID3D12CommandList* commandLists[] = { commandList.Get() };
 	commandQueue->ExecuteCommandLists(1, commandLists);
@@ -398,6 +395,9 @@ void DirectXBasics::PostDraw()
 		//イベントを待つ
 		WaitForSingleObject(fenceEvent, INFINITE);
 	}
+
+	//FPS固定更新
+	UpdateFixFPS();
 
 	//次のフレーム用のコマンドリストを準備
 	hr = commandAllocator->Reset();
