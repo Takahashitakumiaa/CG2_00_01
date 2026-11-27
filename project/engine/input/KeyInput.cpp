@@ -1,6 +1,6 @@
 #include "keyInput.h"
 
-void KeyInput::Initialize(/*HINSTANCE hInstance, HWND hwnd*/WindowsApp* windowsApp)
+void KeyInput::Initialize(WindowsApp* windowsApp)
 {
 	//借りてきたwindowsAppのインスタンスを記録
 	this->windowsApp_ = windowsApp;
@@ -8,12 +8,10 @@ void KeyInput::Initialize(/*HINSTANCE hInstance, HWND hwnd*/WindowsApp* windowsA
 	HRESULT result;
 
 	//DirectInputの初期化
-	/*Microsoft::WRL::ComPtr<IDirectInput8> directInput = nullptr;*/
 	result = DirectInput8Create(windowsApp->GetInstance(), DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
 	assert(SUCCEEDED(result));
 
 	//キーボードデバイスの生成
-	/*Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard = nullptr;*/
 	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
 	assert(SUCCEEDED(result));
 	//入力データの形式のセット

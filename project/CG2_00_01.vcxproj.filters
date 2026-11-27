@@ -40,6 +40,9 @@
     <Filter Include="ソース ファイル\application\camera">
       <UniqueIdentifier>{4a9f4ef6-c849-4e2d-9f8e-87f5735cc720}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\engine\Audio">
+      <UniqueIdentifier>{ebb2cdef-ea47-4f4e-9ea6-6ed878764e3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="externals\imgui\imgui.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="engine\math\MyMath.cpp">
       <Filter>ソース ファイル\engine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Audio\Audio.cpp">
+      <Filter>ソース ファイル\engine\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -153,6 +159,9 @@
     </ClInclude>
     <ClInclude Include="engine\math\MyMath.h">
       <Filter>ソース ファイル\engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Audio\Audio.h">
+      <Filter>ソース ファイル\engine\Audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
