@@ -320,7 +320,7 @@ struct Emitter
 std::random_device seedGenerator;
 std::mt19937 randomEngine(seedGenerator());
 
-Particle MakeNewParticle(std::mt19937& randomEngine,const Vector3& translate)
+Particle MakeNewParticle(std::mt19937& randomEngine, const Vector3& translate)
 {
 	//位置と速度を[-1,1]でランダムに初期化
 	std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
@@ -346,7 +346,7 @@ std::list<Particle> Emit(const Emitter& emitter, std::mt19937& randomEngine) {
 	std::list<Particle> particles;
 	for (uint32_t count = 0; count < emitter.conut; ++count)
 	{
-		particles.push_back(MakeNewParticle(randomEngine,emitter.transform.translate));
+		particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 	}
 	return particles;
 }
@@ -356,6 +356,12 @@ struct ParticalForGPU
 	Matrix4x4 WVP;
 	Matrix4x4 World;
 	Vector4 color;
+};
+
+struct AccelerationField
+{
+	Vector3 acceleration;//!<加速度
+	AABB area;//!<範囲
 };
 
 //Windowsアプリでのエントリーポイント(main関数)
@@ -896,6 +902,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		bool useMonsterBall = true;
 		bool useBillboard = true;
 		bool isParticleActive = false;
+		bool isWindActive = false;
 		Vector3 particleRotate = { 0.0f, 0.0f, 0.0f };
 
 		//Sprite用のマテリアルリソースを作る
@@ -1033,12 +1040,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		std::list<Particle> particles;
 		for (uint32_t index = 0; index < kNumMaxInstance; ++index)
 		{
-			particles.push_back(MakeNewParticle(randomEngine,emitter.transform.translate));
+			particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 			particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 			particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 		}
 
 		const float kDeltaTime = 1.0f / 60.0f;
+
+		AccelerationField accelerationField;
+		accelerationField.acceleration = { 15.0f,0.0f,0.0f };
+		accelerationField.area.min = { -1.0f,-1.0f,-1.0f };
+		accelerationField.area.max = { 1.0f,1.0f,1.0f };
 
 		//ポインタ
 		KeyInput* keyInput = nullptr;
@@ -1095,6 +1107,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				// --- パーティクルコントロール ---
 				ImGui::Checkbox("Billboard ON/OFF", &useBillboard);
 				ImGui::Checkbox("Move ON/OFF", &isParticleActive);
+				ImGui::Checkbox("Wind ON/OFF", &isWindActive);
 
 				if (ImGui::Button("Add Particle"))
 				{
@@ -1221,9 +1234,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						continue;
 					}
 
+					//Fieldの範囲内のParticleには加速度を適用する
+
 					if (isParticleActive)
 					{
-						particleIterator->transform.translate.y += particleIterator->velocity.y * kDeltaTime;
+						if (isWindActive&&IsCollision(accelerationField.area, (*particleIterator).transform.translate))
+						{
+							particleIterator->velocity += accelerationField.acceleration * kDeltaTime;
+						}
+						particleIterator->transform.translate += particleIterator->velocity * kDeltaTime;
 						particleIterator->currentTime += kDeltaTime;//経過時間を足す
 					}
 
@@ -1263,7 +1282,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrixParticle, viewProjectionMatrix);
 						instancingData[numInstance].WVP = worldViewProjectionMatrix;
 						instancingData[numInstance].World = worldMatrixParticle;
-						instancingData[numInstance].color = particleIterator -> color;
+						instancingData[numInstance].color = particleIterator->color;
 						instancingData[numInstance].color.w = alpha;
 						++numInstance;//生きているParticleの数を1つカウントする
 					}
@@ -1271,7 +1290,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				}
 
 				emitter.frequencyTime += kDeltaTime;//時刻を進める
-				if (emitter.frequency<=emitter.frequencyTime)
+				if (emitter.frequency <= emitter.frequencyTime)
 				{//頻度より大きいなら発生
 					particles.splice(particles.end(), Emit(emitter, randomEngine));//発生処理
 					emitter.frequencyTime -= emitter.frequency;//余計に過ぎた時間も加味して頻度計算する

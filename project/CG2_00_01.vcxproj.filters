@@ -78,9 +78,6 @@
     <ClCompile Include="engine\input\KeyInput.cpp">
       <Filter>ソース ファイル\engine\input</Filter>
     </ClCompile>
-    <ClCompile Include="engine\math\MyMath.cpp">
-      <Filter>ソース ファイル\engine\math</Filter>
-    </ClCompile>
     <ClCompile Include="engine\base\DirectXBasics.cpp">
       <Filter>ソース ファイル\engine\base</Filter>
     </ClCompile>
@@ -89,6 +86,9 @@
     </ClCompile>
     <ClCompile Include="engine\utility\Logger.cpp">
       <Filter>ソース ファイル\engine\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\MyMath.cpp">
+      <Filter>ソース ファイル\engine\math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -145,14 +145,14 @@
     <ClInclude Include="engine\input\KeyInput.h">
       <Filter>ソース ファイル\engine\input</Filter>
     </ClInclude>
-    <ClInclude Include="engine\math\MyMath.h">
-      <Filter>ソース ファイル\engine\math</Filter>
-    </ClInclude>
     <ClInclude Include="engine\utility\StringUtility.h">
       <Filter>ソース ファイル\engine\utility</Filter>
     </ClInclude>
     <ClInclude Include="engine\utility\Logger.h">
       <Filter>ソース ファイル\engine\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\MyMath.h">
+      <Filter>ソース ファイル\engine\math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

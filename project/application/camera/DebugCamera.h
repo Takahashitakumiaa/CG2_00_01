@@ -1,6 +1,6 @@
 #pragma once
 #include "MyMath.h"
-#include "keyInput.h"
+#include "KeyInput.h"
 
 class DebugCamera
 {
